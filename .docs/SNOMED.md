@@ -64,7 +64,7 @@
     - Use `SnomedCT_UKClinicalRF2_PRODUCTION_*/Full/Refset/Map` from [Step 1](#1-Collect-SNOMED-CT-full-release)
 
 2. Map ReadCode CV2 to SNOMED CT:
-    - Use files found in part 2 of [Step 2](#2.Collect-ReadCode-map)
+    - Use files found in part 2 of [Step 2](#2-Collect-ReadCode-map)
 
 3. Map ReadCode CV3 to SNOMED CT:
-    - Use files found in part 3 of [Step 2](#2.Collect-ReadCode-map)
+    - Use files found in part 3 of [Step 2](#2-Collect-ReadCode-map)

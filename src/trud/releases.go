@@ -109,8 +109,17 @@ func (r *Release) HasRelease(directory string) (bool, error) {
 	return false, err
 }
 
-func queryRelease(url string, release *Release) error {
-	res, err := http.Get(url)
+func queryRelease(ctx context.Context, url string, release *Release) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -154,8 +163,8 @@ func getReleases(category Category, apiKey string) ([]*Release, error) {
 		)
 
 		errs.Go(func() error {
-			if err := queryRelease(url, releases[i]); err != nil {
-				return fmt.Errorf("[gid: %d, cat: %d] failed to download package at <%s> with err: %v", i, id, url, err)
+			if err := queryRelease(ctx, url, releases[i]); err != nil {
+				return fmt.Errorf("[gid: %d, cat: %d] failed to query package at <%s> with err: %v", i, id, url, err)
 			}
 
 			return nil

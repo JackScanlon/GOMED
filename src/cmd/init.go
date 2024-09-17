@@ -1,12 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"snomed/src/shared"
+	"snomed/src/pg"
 	"snomed/src/trud"
 )
 
@@ -18,13 +19,8 @@ const (
 type InitCommand struct {
 	fs *flag.FlagSet
 
-	binPath          string
-	nhsTrudKey       string
-	postgresHost     string
-	postgresPort     uint
-	postgresUsername string
-	postgresPassword string
-	postgresDatabase string
+	binPath  string
+	category trud.Category
 }
 
 func NewInitCommand() *InitCommand {
@@ -38,18 +34,25 @@ func NewInitCommand() *InitCommand {
 		fs.PrintDefaults()
 	}
 
+	config := pg.Config
 	fs.StringVar(
 		&cc.binPath, "bin", defaultBinDirectory,
 		"The temporary output directory for downloaded content",
 	)
+	fs.StringVar(&config.NhsTrudKey, "key", config.NhsTrudKey, "NHS Trud API key")
+	fs.StringVar(&config.PostgresHost, "host", config.PostgresHost, "Postgres host")
+	fs.UintVar(&config.PostgresPort, "port", config.PostgresPort, "Postgres port")
+	fs.StringVar(&config.PostgresUsername, "uid", config.PostgresUsername, "Postgres username")
+	fs.StringVar(&config.PostgresPassword, "pwd", config.PostgresPassword, "Postgres password")
+	fs.StringVar(&config.PostgresDatabase, "db", config.PostgresDatabase, "Postgres database name")
 
-	config := shared.Config
-	fs.StringVar(&cc.nhsTrudKey, "key", config.NhsTrudKey, "NHS Trud API key")
-	fs.StringVar(&cc.postgresHost, "host", config.PostgresHost, "Postgres host")
-	fs.UintVar(&cc.postgresPort, "port", config.PostgresPort, "Postgres port")
-	fs.StringVar(&cc.postgresUsername, "uid", config.PostgresUsername, "Postgres username")
-	fs.StringVar(&cc.postgresPassword, "pwd", config.PostgresPassword, "Postgres password")
-	fs.StringVar(&cc.postgresDatabase, "db", config.PostgresDatabase, "Postgres database name")
+	var cat string
+	fs.StringVar(&cat, "cat", "SNOMED_ALL", "Desired SNOMED release categories")
+	if succ, res := trud.ParseCategory(cat); succ {
+		cc.category = res
+	} else {
+		cc.category = trud.SNOMED_NONE
+	}
 
 	return cc
 }
@@ -62,19 +65,24 @@ func (c *InitCommand) GetFlagSet() *flag.FlagSet {
 	return c.fs
 }
 
-func (c *InitCommand) Init(args []string) error {
+func (c *InitCommand) Init(ctx context.Context, args []string) error {
 	if err := c.fs.Parse(args); err != nil {
 		return err
 	}
 
-	if err := trud.DownloadPackages(trud.SNOMED_ALL, c.nhsTrudKey, c.binPath); err != nil {
+	_, err := pg.GetDb(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err := trud.DownloadPackages(ctx, trud.SNOMED_ALL, pg.Config.NhsTrudKey, c.binPath); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (c *InitCommand) Run() error {
+func (c *InitCommand) Run(ctx context.Context) error {
 
 	return nil
 }

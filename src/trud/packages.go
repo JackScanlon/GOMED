@@ -1,6 +1,7 @@
 package trud
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-func downloadRelease(prefix string, release *Release, directory string) error {
+func downloadPackage(prefix string, release *Release, directory string) error {
 	fileURL := release.Metadata.ArchiveFileURL
 	fileSize := release.Metadata.ArchiveFileSizeBytes
 	fileName := release.Metadata.ArchiveFileName
@@ -28,7 +29,7 @@ func downloadRelease(prefix string, release *Release, directory string) error {
 
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf(
-			"release %s at url<%s> returned status<%d> with message: %s",
+			"package<%s> at url<%s> returned status<%d> with message: %s",
 			fileName, fileURL, res.StatusCode, res.Status,
 		)
 	}
@@ -75,7 +76,7 @@ func downloadRelease(prefix string, release *Release, directory string) error {
 	return nil
 }
 
-func DownloadPackages(category Category, apiKey string, directory string) error {
+func DownloadPackages(ctx context.Context, category Category, apiKey string, directory string) error {
 	if err := shared.GetOrCreateDir(directory); err != nil {
 		return err
 	}
@@ -96,14 +97,14 @@ func DownloadPackages(category Category, apiKey string, directory string) error 
 		} else if exists {
 			total--
 			releases = append(releases[:index], releases[index+1:]...)
-			fmt.Printf("[%d] Skipping Release<%s> since it already exists\n", index, release.Metadata.Name)
+			fmt.Printf("[%d] Skipping ReleasePackage<%s> since it already exists\n", index, release.Metadata.Name)
 			continue
 		}
 		index++
 	}
 
 	for _, release := range releases {
-		err := downloadRelease(fmt.Sprintf("%d/%d", index, total), release, directory)
+		err := downloadPackage(fmt.Sprintf("%d/%d", index, total), release, directory)
 		if err != nil {
 			return err
 		}

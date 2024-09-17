@@ -1,5 +1,10 @@
 package trud
 
+import (
+	"strconv"
+	"strings"
+)
+
 type Category uint8
 
 const (
@@ -14,6 +19,12 @@ var (
 	categoryIds = map[Category]uint16{
 		SNOMED_RELEASE:  101,
 		SNOMED_READ_MAP: 9,
+	}
+	categoryNames = map[string]Category{
+		"SNOMED_NONE":     SNOMED_NONE,
+		"SNOMED_RELEASE":  SNOMED_RELEASE,
+		"SNOMED_READ_MAP": SNOMED_READ_MAP,
+		"SNOMED_ALL":      SNOMED_ALL,
 	}
 )
 
@@ -31,4 +42,18 @@ func (category Category) GetIds() []uint16 {
 	}
 
 	return categoryId
+}
+
+func ParseCategory(str string) (bool, Category) {
+	cat, ok := categoryNames[strings.ToUpper(str)]
+	if ok {
+		return true, cat
+	}
+
+	val, err := strconv.ParseUint(str, 10, 8)
+	if err == nil {
+		return true, Category(val)
+	}
+
+	return false, SNOMED_NONE
 }

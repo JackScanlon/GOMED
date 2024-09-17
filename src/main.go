@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -8,12 +9,13 @@ import (
 	"path/filepath"
 
 	"snomed/src/cmd"
+	"snomed/src/pg"
 	"snomed/src/shared"
 )
 
 func init() {
-	if err := shared.RegisterEnvironment(); err != nil {
-		fmt.Fprintln(flag.CommandLine.Output(), errors.New(shared.EnvironmentUsage()))
+	if err := pg.RegisterEnvironment(); err != nil {
+		fmt.Fprintln(flag.CommandLine.Output(), errors.New(pg.EnvironmentUsage()))
 		os.Exit(1)
 	}
 
@@ -23,7 +25,8 @@ func init() {
 func main() {
 	fmt.Printf("%s/%s\n", filepath.Base(os.Args[0]), shared.GetVersion())
 
-	if err := cmd.Execute(os.Args[1:]); err != nil {
+	ctx := context.Background()
+	if err := cmd.Execute(ctx, os.Args[1:]); err != nil {
 		fmt.Fprintln(flag.CommandLine.Output(), err)
 		os.Exit(1)
 	}

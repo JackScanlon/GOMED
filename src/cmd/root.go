@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -10,8 +11,8 @@ import (
 var cmds []Command
 
 type Command interface {
-	Init([]string) error
-	Run() error
+	Init(context.Context, []string) error
+	Run(context.Context) error
 	Name() string
 
 	GetFlagSet() *flag.FlagSet
@@ -23,17 +24,22 @@ func GenerateCommands() {
 	}
 }
 
-func Execute(args []string) error {
+func Execute(ctx context.Context, args []string) error {
 	if len(args) < 1 {
 		return nil
 	}
 
 	command := os.Args[1]
 	for _, cmd := range cmds {
-		if cmd.Name() == command {
-			cmd.Init(os.Args[2:])
-			return cmd.Run()
+		if cmd.Name() != command {
+			continue
 		}
+
+		if err := cmd.Init(ctx, os.Args[2:]); err != nil {
+			return err
+		}
+
+		return cmd.Run(ctx)
 	}
 
 	if command == "-h" || command == "-help" {

@@ -1,4 +1,4 @@
-package shared
+package pg
 
 import (
 	"strings"
@@ -16,10 +16,15 @@ type ConfigSpec struct {
 	PostgresDatabase string `envconfig:"POSTGRES_DB" json:"POSTGRES_DB" desc:"Postgres database name"`
 }
 
-var Config ConfigSpec
+var Config *ConfigSpec = nil
 
 func RegisterEnvironment() error {
-	if err := envconfig.Process("", &Config); err != nil {
+	if Config != nil {
+		return nil
+	}
+
+	Config = &ConfigSpec{}
+	if err := envconfig.Process("", Config); err != nil {
 		return err
 	}
 

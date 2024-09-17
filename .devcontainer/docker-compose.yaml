@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: ./.devcontainer/Dockerfile
+      args:
+        GO_VERSION: 1.22.1
+    tty: true
+    command: sleep infinity
+    network_mode: service:db
+    env_file:
+      - .env
+    volumes:
+      - ..:/workspace:cached
+
+  db:
+    image: postgres:latest
+    restart: on-failure
+    tty: true
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
+        "&& /usr/bin/psql -d $$POSTGRES_DB -U $$POSTGRES_USER -t -c \"select count(datid) from pg_stat_activity where state is not null and wait_event = 'WalWriterMain';\" | egrep .",
+      ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:

@@ -1,0 +1,28 @@
+{
+  // Git behaviour
+  "git.autofetch": true,
+
+  // Languages
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[go]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always",
+    }
+  },
+  "[go.mod]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always"
+    },
+  },
+  "[sql]": {
+    "editor.formatOnSave": true
+  },
+
+  // Base formatting
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true
+}

@@ -2,6 +2,7 @@ package pg
 
 import (
 	"strings"
+	"sync"
 	"text/tabwriter"
 
 	"github.com/kelseyhightower/envconfig"
@@ -16,19 +17,25 @@ type ConfigSpec struct {
 	PostgresDatabase string `envconfig:"POSTGRES_DB" json:"POSTGRES_DB" desc:"Postgres database name"`
 }
 
-var Config *ConfigSpec = nil
+var (
+	Config  *ConfigSpec
+	cfgOnce sync.Once
+)
 
-func RegisterEnvironment() error {
-	if Config != nil {
-		return nil
-	}
+func RegisterEnvironment() (*ConfigSpec, error) {
+	var err error
+	cfgOnce.Do(func() {
+		cfg := &ConfigSpec{}
 
-	Config = &ConfigSpec{}
-	if err := envconfig.Process("", Config); err != nil {
-		return err
-	}
+		err = envconfig.Process("", cfg)
+		if err != nil {
+			return
+		}
 
-	return nil
+		Config = cfg
+	})
+
+	return Config, err
 }
 
 func EnvironmentUsage() string {

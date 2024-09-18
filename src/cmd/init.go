@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"snomed/src/codes"
 	"snomed/src/pg"
 	"snomed/src/trud"
 )
@@ -21,6 +22,8 @@ type InitCommand struct {
 
 	binPath  string
 	category trud.Category
+	driver   *pg.Driver
+	releases []*trud.Release
 }
 
 func NewInitCommand() *InitCommand {
@@ -70,19 +73,34 @@ func (c *InitCommand) Init(ctx context.Context, args []string) error {
 		return err
 	}
 
-	_, err := pg.GetDb(ctx)
+	driver, err := pg.GetDB(ctx)
 	if err != nil {
 		return err
 	}
+	c.driver = driver
 
-	if err := trud.DownloadPackages(ctx, trud.SNOMED_ALL, pg.Config.NhsTrudKey, c.binPath); err != nil {
+	releases, err := trud.DownloadPackages(ctx, trud.SNOMED_ALL, pg.Config.NhsTrudKey, c.binPath)
+	if err != nil {
 		return err
 	}
+	c.releases = releases
 
 	return nil
 }
 
 func (c *InitCommand) Run(ctx context.Context) error {
+	/*
+		TODO:
+			- det. whether tables exist; create them if not - could also look at doing delta update?
+			- parse tab delimited text files -> upload to db
+			- process & create top-level code map
+	*/
+
+	for _, release := range c.releases {
+		if err := codes.TryCreateTables(release, c.binPath); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

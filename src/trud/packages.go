@@ -76,27 +76,29 @@ func downloadPackage(prefix string, release *Release, directory string) error {
 	return nil
 }
 
-func DownloadPackages(ctx context.Context, category Category, apiKey string, directory string) error {
+func DownloadPackages(ctx context.Context, category Category, apiKey string, directory string) ([]*Release, error) {
 	if err := shared.GetOrCreateDir(directory); err != nil {
-		return err
+		return nil, err
 	}
 
 	releases, err := getReleases(category, apiKey)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	total := len(releases)
 	index := 0
+	var results []*Release
 	for index < total {
 		release := releases[index]
 
 		exists, err := release.HasRelease(directory)
 		if err != nil {
-			return err
+			return nil, err
 		} else if exists {
 			total--
 			releases = append(releases[:index], releases[index+1:]...)
+			results = append(results, release)
 			fmt.Printf("[%d] Skipping ReleasePackage<%s> since it already exists\n", index, release.Metadata.Name)
 			continue
 		}
@@ -106,15 +108,16 @@ func DownloadPackages(ctx context.Context, category Category, apiKey string, dir
 	for _, release := range releases {
 		err := downloadPackage(fmt.Sprintf("%d/%d", index, total), release, directory)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		output := path.Join(directory, release.Metadata.Name)
 		filePath := path.Join(directory, release.Metadata.ArchiveFileName)
 		if err := shared.UnzipArchive(filePath, output); err != nil {
-			return err
+			return nil, err
 		}
+		results = append(results, release)
 	}
 
-	return nil
+	return results, nil
 }

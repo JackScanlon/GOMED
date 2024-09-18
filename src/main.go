@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	if err := pg.RegisterEnvironment(); err != nil {
+	if _, err := pg.RegisterEnvironment(); err != nil {
 		fmt.Fprintln(flag.CommandLine.Output(), errors.New(pg.EnvironmentUsage()))
 		os.Exit(1)
 	}

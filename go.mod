@@ -5,6 +5,7 @@ go 1.22.1
 require github.com/kelseyhightower/envconfig v1.4.0
 
 require (
+	github.com/georgysavva/scany/v2 v2.1.3
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213
 	github.com/schollz/progressbar/v3 v3.15.0
@@ -14,6 +15,7 @@ require (
 )
 
 require (
+	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect

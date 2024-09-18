@@ -37,9 +37,9 @@
     - URL @ [SNOMED CT UK Clinical Edition, RF2](https://isd.digital.nhs.uk/trud/users/authenticated/group/0/pack/26/subpack/101/releases)
 
 2. Upload all `[Concept, Description, Relationship]` from `[release]/Full/Terminology`:
-    - `SnomedCT_InternationalRF2_PRODUCTION_*`
-    - `SnomedCT_UKClinicalRF2_PRODUCTION_*`
-    - `SnomedCT_UKEditionRF2_PRODUCTION_*`
+    - `SnomedCT_InternationalRF2_PRODUCTION_*/Full/Terminology`
+    - `SnomedCT_UKClinicalRF2_PRODUCTION_*/Full/Terminology`
+    - `SnomedCT_UKEditionRF2_PRODUCTION_*/Full/Terminology`
 
 3. Upload ICD-10 mapping from `SnomedCT_UKClinicalRF2_PRODUCTION_*/Full/Refset/Map`:
     - Filename: `der2_iisssciRefset_ExtendedMapUKCLFull_GB1000000_20240410.txt`

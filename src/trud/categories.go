@@ -44,6 +44,10 @@ func (category Category) GetIds() []uint16 {
 	return categoryId
 }
 
+func IsCategory(rel *Release, cat Category) bool {
+	return rel.CategoryId == categoryIds[cat]
+}
+
 func ParseCategory(str string) (bool, Category) {
 	cat, ok := categoryNames[strings.ToUpper(str)]
 	if ok {

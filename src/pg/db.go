@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -76,6 +77,51 @@ func (d *Driver) Tx(options ...PgOption) *PgTransaction {
 		hnd:  d.pool,
 		opts: d.getOptions(options...),
 	}
+}
+
+func (d *Driver) CreateTableFrom(schema string, name string, obj interface{}, options ...PgOption) error {
+	exists, err := d.Exists(schema, name, options...)
+	if err != nil {
+		return err
+	} else if exists {
+		return fmt.Errorf("invalid arguments: table of name '%s' in schema '%s' already exists", schema, name)
+	}
+
+	content, err := BuildCreateString(schema, name, obj)
+	if err != nil {
+		return err
+	}
+
+	_, err = d.
+		Stmt(options...).
+		Exec(content)
+
+	return err
+}
+
+func (d *Driver) Exists(schema string, name string, options ...PgOption) (bool, error) {
+	var exists bool
+	err := d.
+		Stmt(options...).
+		Get(
+			&exists,
+			"SELECT EXISTS(SELECT table_name FROM information_schema.tables WHERE table_schema=$1 and table_name=$2)",
+			schema, name,
+		)
+
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (d *Driver) DropIfExists(schema string, name string, options ...PgOption) error {
+	_, err := d.
+		Stmt(options...).
+		Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s;", pgx.Identifier{schema, name}.Sanitize()))
+
+	return err
 }
 
 func (d *Driver) Close() {

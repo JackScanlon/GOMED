@@ -91,13 +91,14 @@ func (c *InitCommand) Init(ctx context.Context, args []string) error {
 func (c *InitCommand) Run(ctx context.Context) error {
 	/*
 		TODO:
-			- det. whether tables exist; create them if not - could also look at doing delta update?
-			- parse tab delimited text files -> upload to db
-			- process & create top-level code map
+			- [x] det. whether tables exist; create them if not - could also look at doing delta update?
+			- [x] parse tab delimited text files -> upload to db
+			- [ ] process & create top-level code map
+			- [ ] add logger
 	*/
 
 	for _, release := range c.releases {
-		if err := codes.TryCreateTables(release, c.binPath); err != nil {
+		if err := codes.TryCreateTables(c.driver, release, c.binPath); err != nil {
 			return err
 		}
 	}

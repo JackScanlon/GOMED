@@ -19,8 +19,8 @@ const (
 
 var (
 	releaseName = map[uint16]string{
-		9:   "SnomedReadMap",
-		101: "SnomedCTRelease",
+		9:    "SnomedReadMap",
+		1799: "SnomedCTRelease",
 	}
 )
 
@@ -94,6 +94,10 @@ func NewRelease(opts ...ReleaseOpt) *Release {
 	}
 
 	return release
+}
+
+func (r *Release) IsCategory(cat Category) bool {
+	return IsCategoryId(r.CategoryId, cat)
 }
 
 func (r *Release) HasRelease(directory string) (bool, error) {

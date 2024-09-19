@@ -13,5 +13,6 @@ type PgCommands interface {
 	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
 	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
 	Begin(context.Context) (pgx.Tx, error)
-	SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults
+	SendBatch(context.Context, *pgx.Batch) pgx.BatchResults
+	CopyFrom(context.Context, pgx.Identifier, []string, pgx.CopyFromSource) (int64, error)
 }

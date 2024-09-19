@@ -17,7 +17,7 @@ const (
 var (
 	categoryUrl = "https://isd.digital.nhs.uk/trud/api/v1/keys/%s/items/%d/releases?latest"
 	categoryIds = map[Category]uint16{
-		SNOMED_RELEASE:  101,
+		SNOMED_RELEASE:  1799, // 101
 		SNOMED_READ_MAP: 9,
 	}
 	categoryNames = map[string]Category{
@@ -44,8 +44,25 @@ func (category Category) GetIds() []uint16 {
 	return categoryId
 }
 
-func IsCategory(rel *Release, cat Category) bool {
-	return rel.CategoryId == categoryIds[cat]
+func IsCategoryId(catId uint16, cat Category) bool {
+	switch cat {
+	case SNOMED_ALL:
+		for _, id := range categoryIds {
+			if id == catId {
+				return true
+			}
+		}
+		return false
+	default:
+		break
+	}
+
+	id, ok := categoryIds[cat]
+	if !ok {
+		return false
+	}
+
+	return catId == id
 }
 
 func ParseCategory(str string) (bool, Category) {

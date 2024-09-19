@@ -34,7 +34,7 @@ func downloadPackage(prefix string, release *Release, directory string) error {
 		)
 	}
 
-	tmp, err := os.OpenFile(fmt.Sprintf("%s.tmp", filePath), os.O_CREATE|os.O_WRONLY, 0600)
+	tmp, err := os.OpenFile(fmt.Sprintf("%s.tmp", filePath), os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -96,10 +96,11 @@ func DownloadPackages(ctx context.Context, category Category, apiKey string, dir
 		if err != nil {
 			return nil, err
 		} else if exists {
-			total--
 			releases = append(releases[:index], releases[index+1:]...)
 			results = append(results, release)
-			fmt.Printf("[%d] Skipping ReleasePackage<%s> since it already exists\n", index, release.Metadata.Name)
+			fmt.Printf("skipping ReleasePackage<%s> download since it already exists\n", release.Metadata.Name)
+
+			total--
 			continue
 		}
 		index++

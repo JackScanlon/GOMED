@@ -57,6 +57,7 @@ type PackageMetadata struct {
 type Release struct {
 	Name       string           `json:"Name"`
 	URL        string           `json:"URL"`
+	Category   Category         `json:"Category"`
 	CategoryId uint16           `json:"CategoryId"`
 	Metadata   *ReleaseMetadata `json:"Metadata"`
 }
@@ -69,7 +70,13 @@ func WithURL(url string) ReleaseOpt {
 	}
 }
 
-func WithCategory(id uint16) ReleaseOpt {
+func WithCategory(cat Category) ReleaseOpt {
+	return func(r *Release) {
+		r.Category = cat
+	}
+}
+
+func WithCategoryId(id uint16) ReleaseOpt {
 	return func(r *Release) {
 		r.CategoryId = id
 
@@ -97,6 +104,10 @@ func NewRelease(opts ...ReleaseOpt) *Release {
 }
 
 func (r *Release) IsCategory(cat Category) bool {
+	return r.Category.Has(cat)
+}
+
+func (r *Release) IsCategoryId(cat Category) bool {
 	return IsCategoryId(r.CategoryId, cat)
 }
 
@@ -147,10 +158,10 @@ func queryRelease(ctx context.Context, url string, release *Release) error {
 }
 
 func getReleases(category Category, apiKey string) ([]*Release, error) {
-	categoryIds := category.GetIds()
-	categoryLen := len(categoryIds)
+	categories := category.GetCategories()
+	categoryLen := len(categories)
 	if categoryLen < 1 {
-		return nil, errors.New("invalid category, no known category id(s)")
+		return nil, errors.New("invalid category")
 	}
 
 	ctx := context.Background()
@@ -158,12 +169,18 @@ func getReleases(category Category, apiKey string) ([]*Release, error) {
 
 	releases := make([]*Release, categoryLen)
 	for i := 0; i < categoryLen; i++ {
-		id := categoryIds[i]
+		cat := categories[i]
+		id, ok := categoryIds[cat]
+		if !ok {
+			continue
+		}
+
 		url := fmt.Sprintf(categoryUrl, apiKey, id)
 
 		releases[i] = NewRelease(
 			WithURL(url),
-			WithCategory(id),
+			WithCategory(cat),
+			WithCategoryId(id),
 		)
 
 		errs.Go(func() error {

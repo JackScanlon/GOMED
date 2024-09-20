@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	usage               string = "%s init arguments:\n"
+	usage               string = "%s build arguments:\n"
 	defaultBinDirectory string = "./bin"
 )
 
-type InitCommand struct {
+type BuildCommand struct {
 	fs *flag.FlagSet
 
 	binPath  string
@@ -26,9 +26,9 @@ type InitCommand struct {
 	releases []*trud.Release
 }
 
-func NewInitCommand() *InitCommand {
-	fs := flag.NewFlagSet("init", flag.ContinueOnError)
-	cc := &InitCommand{
+func NewBuildCommand() *BuildCommand {
+	fs := flag.NewFlagSet("build", flag.ContinueOnError)
+	cc := &BuildCommand{
 		fs: fs,
 	}
 
@@ -60,15 +60,15 @@ func NewInitCommand() *InitCommand {
 	return cc
 }
 
-func (c *InitCommand) Name() string {
+func (c *BuildCommand) Name() string {
 	return c.fs.Name()
 }
 
-func (c *InitCommand) GetFlagSet() *flag.FlagSet {
+func (c *BuildCommand) GetFlagSet() *flag.FlagSet {
 	return c.fs
 }
 
-func (c *InitCommand) Init(ctx context.Context, args []string) error {
+func (c *BuildCommand) Init(ctx context.Context, args []string) error {
 	if err := c.fs.Parse(args); err != nil {
 		return err
 	}
@@ -88,17 +88,19 @@ func (c *InitCommand) Init(ctx context.Context, args []string) error {
 	return nil
 }
 
-func (c *InitCommand) Run(ctx context.Context) error {
+func (c *BuildCommand) Run(ctx context.Context) error {
 	/*
 		TODO:
 			- [x] det. whether tables exist; create them if not - could also look at doing delta update?
 			- [x] parse tab delimited text files -> upload to db
-			- [ ] process & create top-level code map
+			- [x] create top-level code map
+			- [ ] build simplified code map
+			- [ ] build simplified ontology
 			- [ ] add logger
 	*/
 
 	for _, release := range c.releases {
-		if err := codes.TryCreateTables(c.driver, release, c.binPath); err != nil {
+		if err := codes.BuildRelease(c.driver, release, c.binPath); err != nil {
 			return err
 		}
 	}

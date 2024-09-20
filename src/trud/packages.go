@@ -98,7 +98,7 @@ func DownloadPackages(ctx context.Context, category Category, apiKey string, dir
 		} else if exists {
 			releases = append(releases[:index], releases[index+1:]...)
 			results = append(results, release)
-			fmt.Printf("skipping ReleasePackage<%s> download since it already exists\n", release.Metadata.Name)
+			fmt.Printf("skipping download of ReleasePackage<%s> since it already exists\n", release.Metadata.Name)
 
 			total--
 			continue

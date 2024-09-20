@@ -32,6 +32,18 @@ func (category Category) Has(flag Category) bool {
 	return (category & flag) == flag
 }
 
+func (category Category) GetCategories() []Category {
+	var categories []Category
+	for i := uint8(1); i < uint8(3); i++ {
+		comp := Category(0x1 << i)
+		if category.Has(comp) {
+			categories = append(categories, comp)
+		}
+	}
+
+	return categories
+}
+
 func (category Category) GetIds() []uint16 {
 	var categoryId []uint16
 	for i := uint8(1); i < uint8(3); i++ {

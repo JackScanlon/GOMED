@@ -20,7 +20,7 @@ type Command interface {
 
 func GenerateCommands() {
 	cmds = []Command{
-		NewInitCommand(),
+		NewBuildCommand(),
 	}
 }
 

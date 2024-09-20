@@ -32,7 +32,12 @@ func GetDB(ctx context.Context) (*Driver, error) {
 		ctx, cancel := context.WithTimeout(ctx, pgInitTimeout)
 		defer cancel()
 
-		pool, err := pgxpool.New(ctx, buildConnectionString())
+		pgxConfig, err := pgxpool.ParseConfig(buildConnectionString())
+		if err != nil {
+			return nil, err
+		}
+
+		pool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
 		if err != nil {
 			return nil, err
 		}

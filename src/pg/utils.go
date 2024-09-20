@@ -25,7 +25,7 @@ func getSafeColName(name string) string {
 	return sb.String()
 }
 
-func GetColumnNamesFrom(obj interface{}) ([]string, error) {
+func GetColumnNamesOf(obj interface{}) ([]string, error) {
 	var content []string
 	rt := reflect.TypeOf(obj)
 	if rt.Kind() != reflect.Struct {
@@ -34,7 +34,15 @@ func GetColumnNamesFrom(obj interface{}) ([]string, error) {
 
 	for i := 0; i < rt.NumField(); i++ {
 		field := rt.Field(i)
-		content = append(content, getSafeColName(field.Name))
+		if !field.IsExported() {
+			continue
+		}
+
+		if name, ok := field.Tag.Lookup("dbNamne"); ok {
+			content = append(content, name)
+		} else {
+			content = append(content, getSafeColName(field.Name))
+		}
 	}
 
 	return content, nil
@@ -50,10 +58,20 @@ func BuildCreateString(schema string, name string, obj interface{}) (string, err
 	var sb strings.Builder
 	for i := 0; i < rt.NumField(); i++ {
 		field := rt.Field(i)
+		if !field.IsExported() {
+			continue
+		}
 
 		typeName, ok := field.Tag.Lookup("dbType")
 		if !ok {
 			continue
+		}
+
+		columnName := field.Name
+		if name, ok := field.Tag.Lookup("dbName"); ok {
+			columnName = name
+		} else {
+			columnName = getSafeColName(columnName)
 		}
 
 		if typeMod, ok := field.Tag.Lookup("dbMod"); ok {
@@ -66,7 +84,6 @@ func BuildCreateString(schema string, name string, obj interface{}) (string, err
 			}
 		}
 
-		columnName := getSafeColName(field.Name)
 		sb.WriteString(fmt.Sprintf("\n\t%s  %s,", columnName, typeName))
 	}
 
@@ -96,9 +113,11 @@ func FlattenRow(obj interface{}) ([]any, error) {
 	rt = rv.Type()
 	for i := 0; i < rt.NumField(); i++ {
 		field := rt.Field(i)
-		value := rv.FieldByName(field.Name).Interface()
-
-		content = append(content, value)
+		item := rv.FieldByName(field.Name)
+		if item.CanInterface() {
+			value := item.Interface()
+			content = append(content, value)
+		}
 	}
 
 	return content, nil

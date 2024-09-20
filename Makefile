@@ -1,7 +1,7 @@
 GOOS = linux
 CGO_ENABLED = 0
 DEFAULT_VER = 0.0.1
-DEFAULT_CMD = init
+DEFAULT_CMD = build
 
 dev: build-dev run-dev
 

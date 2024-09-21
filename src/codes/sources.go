@@ -7,7 +7,6 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"sync/atomic"
 
 	"snomed/src/csv"
@@ -20,7 +19,7 @@ import (
 )
 
 type ModelType interface {
-	Concept | Description | Relationship | RefsetMap | CtvMap
+	Concept | Description | Relationship | RefsetLang | RefsetMap | CtvMap
 }
 
 func getReader[T ModelType](obj *T) (csv.ReaderFn, error) {
@@ -118,7 +117,7 @@ func BuildRelease(db *pg.Driver, release *trud.Release, dir string) error {
 			continue
 		}
 
-		tableName := fmt.Sprintf("%s_%s_%s", TablePrefix, SnomedTag, strings.ToLower(table.Name))
+		tableName := fmt.Sprintf("%s_%s_%s", TablePrefix, SnomedTag, pg.GetSafeName(table.Name))
 
 		// Tmp
 		exists, err := db.Exists(TableSchema, tableName)
@@ -153,6 +152,8 @@ func BuildRelease(db *pg.Driver, release *trud.Release, dir string) error {
 				case Description:
 					err = componentFromSource(db, file, tableName, &obj)
 				case Relationship:
+					err = componentFromSource(db, file, tableName, &obj)
+				case RefsetLang:
 					err = componentFromSource(db, file, tableName, &obj)
 				case RefsetMap:
 					err = componentFromSource(db, file, tableName, &obj)

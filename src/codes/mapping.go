@@ -27,7 +27,7 @@ func (ref readerHnd) Reader() csv.ReaderFn {
 //	     sRefset: `id      effectiveTime   active  moduleId        refsetId        referencedComponentId   mapTarget`
 type RefsetMap struct {
 	readerHnd
-	Id                    pg.UUID `csv:"id" dbType:"uuid"`
+	Id                    pg.UUID `csv:"id" dbType:"UUID"`
 	EffectiveTime         pg.Date `csv:"effectiveTime" dbType:"DATE"`
 	Active                bool    `csv:"active" dbType:"BOOLEAN"`
 	ModuleId              string  `csv:"moduleId" dbType:"VARCHAR" dbMod:"18" dbReference:"Concept>id"`

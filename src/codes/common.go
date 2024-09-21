@@ -62,7 +62,15 @@ var (
 			Filenames: []string{"Relationship", "StatedRelationship"},
 		},
 		{
-			Name:      "Refset",
+			Name:      "RefsetLang",
+			Dir:       "Snapshot/Refset/Language",
+			Fmt:       "der2_%s_*.txt",
+			Model:     new(RefsetLang),
+			Category:  trud.SNOMED_RELEASE,
+			Filenames: []string{"cRefset"},
+		},
+		{
+			Name:      "RefsetMap",
 			Dir:       "Snapshot/Refset/Map",
 			Fmt:       "der2_%s_*.txt",
 			Model:     new(RefsetMap),
@@ -80,7 +88,7 @@ var (
 	}
 
 	RefsetIdName = map[string]string{
-		// OPSC4
+		// OPCS4
 		"1126441000000105": "OPCS4",
 		"1382401000000109": "OPCS4",
 

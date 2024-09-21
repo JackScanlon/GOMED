@@ -1,0 +1,8 @@
+{
+  // Extensions installed in .devcontainer
+  "recommendations": [
+    "golang.Go",
+    "ms-vscode.makefile-tools",
+    "IronGeek.vscode-env"
+  ]
+}

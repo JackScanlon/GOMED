@@ -46,6 +46,17 @@ type Relationship struct {
 	ModifierId           string  `csv:"modifierId" dbType:"VARCHAR" dbMod:"18" dbReference:"Concept>id"`
 }
 
+type RefsetLang struct {
+	generatorHnd
+	Id                    pg.UUID `csv:"id" dbType:"UUID"`
+	EffectiveTime         pg.Date `csv:"effectiveTime" dbType:"DATE"`
+	Active                bool    `csv:"active" dbType:"BOOLEAN"`
+	ModuleId              string  `csv:"moduleId" dbType:"VARCHAR" dbMod:"18" dbReference:"Concept>id"`
+	RefsetId              string  `csv:"refsetId" dbType:"VARCHAR" dbMod:"18" dbReference:"Concept>id"`
+	ReferencedComponentId string  `csv:"referencedComponentId" dbType:"VARCHAR" dbMod:"18" dbReference:"Description>id"`
+	AcceptabilityId       string  `csv:"acceptabilityId" dbType:"VARCHAR" dbMod:"18" dbReference:"Concept>id"`
+}
+
 func (p generatorHnd) Process(row any) (process bool, flat []any, err error) {
 	flat, err = pg.FlattenRow(row)
 	if err != nil {

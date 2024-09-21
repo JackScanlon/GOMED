@@ -4,6 +4,9 @@
 
   // Languages
   "[jsonc]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
     "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[go]": {
@@ -19,10 +22,13 @@
     },
   },
   "[sql]": {
-    "editor.formatOnSave": true
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
   },
 
   // Base formatting
   "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func getSafeColName(name string) string {
+func GetSafeName(name string) string {
 	var sb strings.Builder
 	re := regexp.MustCompile("[A-Z][a-z]*")
 
@@ -41,7 +41,7 @@ func GetColumnNamesOf(obj interface{}) ([]string, error) {
 		if name, ok := field.Tag.Lookup("dbNamne"); ok {
 			content = append(content, name)
 		} else {
-			content = append(content, getSafeColName(field.Name))
+			content = append(content, GetSafeName(field.Name))
 		}
 	}
 
@@ -71,7 +71,7 @@ func BuildCreateString(schema string, name string, obj interface{}) (string, err
 		if name, ok := field.Tag.Lookup("dbName"); ok {
 			columnName = name
 		} else {
-			columnName = getSafeColName(columnName)
+			columnName = GetSafeName(columnName)
 		}
 
 		if typeMod, ok := field.Tag.Lookup("dbMod"); ok {

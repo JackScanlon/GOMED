@@ -20,15 +20,23 @@ type Driver struct {
 }
 
 var (
-	instance *Driver = nil
-	lock             = &sync.Mutex{}
+	dbInstance *Driver = nil
+	dbLock             = &sync.Mutex{}
 )
 
-func GetDB(ctx context.Context) (*Driver, error) {
-	lock.Lock()
-	defer lock.Unlock()
+func TryGetDB() (*Driver, error) {
+	if dbInstance == nil {
+		return nil, fmt.Errorf("db instance not initialised")
+	}
 
-	if instance == nil {
+	return dbInstance, nil
+}
+
+func GetDB(ctx context.Context) (*Driver, error) {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
+	if dbInstance == nil {
 		ctx, cancel := context.WithTimeout(ctx, pgInitTimeout)
 		defer cancel()
 
@@ -46,15 +54,15 @@ func GetDB(ctx context.Context) (*Driver, error) {
 			return nil, err
 		}
 
-		instance = &Driver{
+		dbInstance = &Driver{
 			pool: pool,
 			ctx:  context.Background(),
 		}
 
-		return instance, nil
+		return dbInstance, nil
 	}
 
-	return instance, nil
+	return dbInstance, nil
 }
 
 func (d *Driver) GetPool() *pgxpool.Pool {
@@ -62,25 +70,39 @@ func (d *Driver) GetPool() *pgxpool.Pool {
 }
 
 func (d *Driver) Ping(options ...PgOption) error {
-	opts := d.getOptions(options...)
+	opts := d.GetOptions(options...)
 	return d.pool.Ping(opts.Ctx)
 }
 
 func (d *Driver) Acquire(options ...PgOption) *PgAcquired {
-	return NewAcquire(d.pool, d.getOptions(options...))
+	return NewAcquire(d.pool, d.GetOptions(options...))
 }
 
 func (d *Driver) Stmt(options ...PgOption) *PgOperation {
 	return &PgOperation{
 		hnd:  d.pool,
-		opts: d.getOptions(options...),
+		opts: d.GetOptions(options...),
+	}
+}
+
+func (d *Driver) StmtWithOpts(opts PgOptions) *PgOperation {
+	return &PgOperation{
+		hnd:  d.pool,
+		opts: opts,
 	}
 }
 
 func (d *Driver) Tx(options ...PgOption) *PgTransaction {
 	return &PgTransaction{
 		hnd:  d.pool,
-		opts: d.getOptions(options...),
+		opts: d.GetOptions(options...),
+	}
+}
+
+func (d *Driver) TxWithOpts(opts PgOptions) *PgTransaction {
+	return &PgTransaction{
+		hnd:  d.pool,
+		opts: opts,
 	}
 }
 
@@ -130,16 +152,16 @@ func (d *Driver) DropIfExists(schema string, name string, options ...PgOption) e
 }
 
 func (d *Driver) Close() {
-	lock.Lock()
-	defer lock.Unlock()
+	dbLock.Lock()
+	defer dbLock.Unlock()
 
-	if instance != nil {
+	if dbInstance != nil {
 		d.GetPool().Close()
-		instance = nil
+		dbInstance = nil
 	}
 }
 
-func (d *Driver) getOptions(options ...PgOption) PgOptions {
+func (d *Driver) GetOptions(options ...PgOption) PgOptions {
 	var opts PgOptions
 	for _, opt := range options {
 		opt(&opts)

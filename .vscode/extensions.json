@@ -3,6 +3,6 @@
   "recommendations": [
     "golang.Go",
     "ms-vscode.makefile-tools",
-    "IronGeek.vscode-env"
+    "dotenv.dotenv-vscode"
   ]
 }

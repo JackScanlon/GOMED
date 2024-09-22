@@ -14,7 +14,7 @@ type PgOptions struct {
 
 type PgOption func(*PgOptions)
 
-func WithContext(ctx context.Context) PgOption {
+func WithStmtContext(ctx context.Context) PgOption {
 	return func(pgo *PgOptions) {
 		pgo.Ctx = ctx
 	}

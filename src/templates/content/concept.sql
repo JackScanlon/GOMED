@@ -26,13 +26,15 @@
 */
 
 
-
 /********************************************************************************
  * Description identifier                                                       *
  *                                                                              *
  *  ? Compute the descriptor type and assign a identifier                       *
  *                                                                              *
  ********************************************************************************/
+
+--![template] name:"descriptionIdentifier"
+
 do $tx$
 declare
   fsn constant varchar := '900000000000003001';
@@ -91,6 +93,7 @@ begin
 end;
 $tx$ language plpgsql;
 
+--![endtemplate]
 
 
 /********************************************************************************
@@ -100,6 +103,9 @@ $tx$ language plpgsql;
  *    associated descriptors                                                    *
  *                                                                              *
  ********************************************************************************/
+
+--![template] name:"simplifyCodelist"
+
 do $tx$
 declare
   sigCL constant varchar := '900000000000020002';
@@ -223,7 +229,7 @@ begin
             join public.clinicalcode_snomed_ctv_map as r
               on c.code = r.concept_id
            where r.active = true
-      )
+      ) as m
     ),
     --> deduplicate code map(s) and aggregate
     codemap as (
@@ -283,3 +289,5 @@ begin
 
 end;
 $tx$ language plpgsql;
+
+--![endtemplate]

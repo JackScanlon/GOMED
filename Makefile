@@ -6,8 +6,8 @@ DEFAULT_CMD = build
 dev: build-dev run-dev
 
 run-dev:
-	$(eval ARGS := "${DEFAULT_CMD}")
-	@./out/bin/snomed ${ARGS}
+	$(eval ARGS := $(DEFAULT_CMD))
+	@./out/bin/snomed $(ARGS)
 
 build-dev:
 	$(eval VERSION = $(shell git describe --abbrev=0 2>/dev/null || echo ${DEFAULT_VER}))

@@ -111,7 +111,8 @@ func componentFromSource[T ModelType](db *pg.Driver, fp string, tableName string
 	return group.Wait()
 }
 
-func BuildRelease(db *pg.Driver, release *trud.Release, dir string) error {
+func BuildRelease(db *pg.Driver, release *trud.Release, dir string) (bool, error) {
+	var rebuilt bool = false
 	for _, table := range SnomedReleaseGroups {
 		if !release.Category.Has(table.Category) {
 			continue
@@ -122,26 +123,26 @@ func BuildRelease(db *pg.Driver, release *trud.Release, dir string) error {
 		// Tmp
 		exists, err := db.Exists(TableSchema, tableName)
 		if err != nil {
-			return err
+			return rebuilt, err
 		} else if exists {
 			continue
 		}
 
 		if err := db.DropIfExists(TableSchema, tableName); err != nil {
-			return err
+			return rebuilt, err
 		}
 
 		rv := reflect.Indirect(reflect.ValueOf(table.Model))
 		rt := rv.Interface()
 		if err := db.CreateTableFrom(TableSchema, tableName, rt); err != nil {
-			return err
+			return rebuilt, err
 		}
 
 		for _, filename := range table.Filenames {
 			pattern := path.Join(dir, release.Metadata.Name, table.Dir, fmt.Sprintf(table.Fmt, filename))
 			matches, err := filepath.Glob(pattern)
 			if err != nil {
-				return err
+				return rebuilt, err
 			}
 
 			for _, file := range matches {
@@ -164,11 +165,13 @@ func BuildRelease(db *pg.Driver, release *trud.Release, dir string) error {
 				}
 
 				if err != nil {
-					return err
+					return rebuilt, err
 				}
+
+				rebuilt = true
 			}
 		}
 	}
 
-	return nil
+	return rebuilt, nil
 }

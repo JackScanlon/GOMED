@@ -37,14 +37,14 @@
 
 do $tx$
 declare
-  fsn constant varchar := '900000000000003001';
-  syn constant varchar := '900000000000013009';
-  def constant varchar := '900000000000550004';
+  FSN        constant varchar := '900000000000003001';
+  SYN        constant varchar := '900000000000013009';
+  DEF        constant varchar := '900000000000550004';
 
-  rlrs constant varchar[] := '{"999001261000000100", "999000691000001104"}'::varchar[];
+  RLRS       constant varchar[] := '{"999001261000000100", "999000691000001104"}'::varchar[];
 
-  preferred constant varchar := '900000000000548007';
-  acceptable constant varchar := '900000000000549004';
+  PREFERRED  constant varchar := '900000000000548007';
+  ACCEPTABLE constant varchar := '900000000000549004';
 begin
   -- create description identifier
   if not exists(select 1 from pg_catalog.pg_type where typname = 'sctident') then
@@ -79,17 +79,17 @@ begin
   update public.clinicalcode_snomed_description as d
      set identifier = (
        case
-         when r.acceptability_id = preferred  and d.type_id = fsn then 'F'::sctident
-         when r.acceptability_id = preferred  and d.type_id = syn then 'P'::sctident
-         when r.acceptability_id = acceptable and d.type_id = syn then 'S'::sctident
-         when d.type_id = def then 'D'::sctident
+         when r.acceptability_id = PREFERRED  and d.type_id = FSN then 'F'::sctident
+         when r.acceptability_id = PREFERRED  and d.type_id = SYN then 'P'::sctident
+         when r.acceptability_id = ACCEPTABLE and d.type_id = SYN then 'S'::sctident
+         when d.type_id = DEF then 'D'::sctident
          else null::sctident
        end
      )
     from public.clinicalcode_snomed_refset_lang as r
    where d.id = r.referenced_component_id
      and r.active = true
-     and r.refset_id = any(rlrs::varchar[]);
+     and r.refset_id = any(RLRS::varchar[]);
 end;
 $tx$ language plpgsql;
 
@@ -108,9 +108,9 @@ $tx$ language plpgsql;
 
 do $tx$
 declare
-  sigCL constant varchar := '900000000000020002';
-  sigCS constant varchar := '900000000000017005';
-  sigCI constant varchar := '900000000000448009';
+  SIG_CL constant varchar := '900000000000020002';
+  SIG_CS constant varchar := '900000000000017005';
+  SIG_CI constant varchar := '900000000000448009';
 begin
   -- install ext(s) if not available
   create extension if not exists pg_trgm schema public;
@@ -157,7 +157,8 @@ begin
     readcv2_codes  text[]        default '{}',
     readcv3_codes  text[]        default '{}',
     search_vector  tsvector      default '',
-    synonyms       tsvector      default ''
+    synonyms       tsvector      default '',
+    unique (code)
   );
 
   -- insert `clinicalcode_snomed_codes` rows
@@ -170,9 +171,9 @@ begin
             d.term as description,
             (
               case
-                when d.case_significance_id = sigCL then 'CL'::sctcase
-                when d.case_significance_id = sigCS then 'CS'::sctcase
-                when d.case_significance_id = sigCI then 'CI'::sctcase
+                when d.case_significance_id = SIG_CL then 'CL'::sctcase
+                when d.case_significance_id = SIG_CS then 'CS'::sctcase
+                when d.case_significance_id = SIG_CI then 'CI'::sctcase
                 else 'CI'::sctcase
               end
             ) as case_sig,
@@ -272,7 +273,21 @@ begin
       left join codemap as cv2
         on c.code = cv2.snomed_code and cv2.source = 'ReadCodeV2'
       left join codemap as cv3
-        on c.code = cv3.snomed_code and cv3.source = 'ReadCodeV3';
+        on c.code = cv3.snomed_code and cv3.source = 'ReadCodeV3'
+    on conflict (code)
+    do update
+      set
+        code          = excluded.code,
+        description   = excluded.description,
+        case_sig      = excluded.case_sig,
+        active        = excluded.active,
+        opcs4_codes   = excluded.opcs4_codes,
+        icd10_codes   = excluded.opcs4_codes,
+        readcv2_codes = excluded.opcs4_codes,
+        readcv3_codes = excluded.opcs4_codes,
+        search_vector = excluded.search_vector,
+        synonyms      = excluded.synonyms
+     where excluded.effective_time > clinicalcode_snomed_codes.effective_time;
 
   -- create index
   create index sct_cd_trgm_idx   on public.clinicalcode_snomed_codes using gin (code          gin_trgm_ops);

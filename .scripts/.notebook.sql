@@ -5,6 +5,8 @@ create aggregate tsvector_agg(tsvector) (
   initcond = ''
 );
 
+
+-- examine codelist collection
 with
   concepts as (
     select
@@ -83,3 +85,36 @@ with
   )
 select *
   from codemap;
+
+
+-- view hierarchy at depth
+with
+  recursive traversal(child_id, parent_id, depth, path) as (
+    select
+          first.child_id,
+          first.parent_id,
+          1 as depth,
+          array[first.child_id] as path
+      from public.clinicalcode_ontologytagedge as first
+     union all
+    select
+          first.child_id,
+          first.parent_id,
+          second.depth + 1 as depth,
+          path || first.child_id as path
+      from public.clinicalcode_ontologytagedge as first,
+           traversal as second
+     where first.child_id = second.parent_id
+       and first.child_id <> ALL(second.path)
+  )
+select *
+  from traversal
+ where depth < 2;
+
+
+-- view root nodes
+select *
+  from public.clinicalcode_ontologytag as tag
+  left join public.clinicalcode_ontologytagedge as edge
+    on edge.child_id = tag.id
+ where edge.child_id is null;

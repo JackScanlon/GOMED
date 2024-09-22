@@ -103,7 +103,7 @@ func (c *BuildCommand) Run(ctx context.Context) (err error) {
 			- [x] parse tab delimited text files -> upload to db
 			- [x] create top-level code map
 			- [x] build simplified code map
-			- [ ] build simplified ontology
+			- [x] build simplified ontology
 			- [ ] add logger
 	*/
 
@@ -132,6 +132,18 @@ func (c *BuildCommand) Run(ctx context.Context) (err error) {
 			GetContainer().
 			Source(
 				"concept:simplifyCodelist",
+				templates.WithEcho(),
+			).
+			Exec()
+
+		if err != nil {
+			return err
+		}
+
+		err = templates.
+			GetContainer().
+			Source(
+				"ontology:network",
 				templates.WithEcho(),
 			).
 			Exec()

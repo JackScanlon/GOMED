@@ -27,16 +27,16 @@ func (ref readerHnd) Reader() csv.ReaderFn {
 //	     sRefset: `id      effectiveTime   active  moduleId        refsetId        referencedComponentId   mapTarget`
 type RefsetMap struct {
 	readerHnd
-	Id                    pg.UUID `csv:"id" dbType:"UUID"`
-	EffectiveTime         pg.Date `csv:"effectiveTime" dbType:"DATE"`
-	Active                bool    `csv:"active" dbType:"BOOLEAN"`
-	ModuleId              string  `csv:"moduleId" dbType:"VARCHAR" dbMod:"18" dbReference:"Concept>id"`
-	RefsetId              string  `csv:"refsetId" dbType:"VARCHAR" dbMod:"18" dbReference:"Concept>id"`
-	ReferencedComponentId string  `csv:"referencedComponentId" dbType:"VARCHAR" dbMod:"18" dbReference:"Concept>id"`
-	MapGroup              int     `csv:"mapGroup,default=1" dbType:"INTEGER"`
-	MapPriority           int     `csv:"mapPriority,default=1" dbType:"INTEGER"`
-	MapTarget             string  `csv:"mapTarget" dbType:"VARCHAR" dbMod:"7"`
-	MapOrigin             string  `csv:"mapOrigin,omitempty" dbType:"VARCHAR" dbMod:"12"`
+	Id                    pg.UUID `csv:"id" dbType:"uuid"`
+	EffectiveTime         pg.Date `csv:"effectiveTime" dbType:"date"`
+	Active                bool    `csv:"active" dbType:"boolean"`
+	ModuleId              string  `csv:"moduleId" dbType:"varchar" dbMod:"18" dbReference:"Concept>id"`
+	RefsetId              string  `csv:"refsetId" dbType:"varchar" dbMod:"18" dbReference:"Concept>id"`
+	ReferencedComponentId string  `csv:"referencedComponentId" dbType:"varchar" dbMod:"18" dbReference:"Concept>id"`
+	MapGroup              int     `csv:"mapGroup,default=1" dbType:"integer"`
+	MapPriority           int     `csv:"mapPriority,default=1" dbType:"integer"`
+	MapTarget             string  `csv:"mapTarget" dbType:"varchar" dbMod:"7"`
+	MapOrigin             string  `csv:"mapOrigin,omitempty" dbType:"varchar" dbMod:"12"`
 }
 
 func (ref RefsetMap) Process(row any) (process bool, flat []any, err error) {
@@ -68,17 +68,17 @@ func (ref RefsetMap) Process(row any) (process bool, flat []any, err error) {
 
 // CTV3 | DATA MIGRATION/Assured
 //
-//	ctv3sctmap2: `MAPID   CTV3_CONCEPTID  CTV3_TERMID     CTV3_TERMTYPE   SCT_CONCEPTID   SCT_DESCRIPTIONID       MAPSTATUS       EFFECTIVEDATE   IS_ASSURED`
+//	ctv3sctmap2: `MAPID   CTV3_CONCEPTID  CTV3_TERMID     CTV3_TERMTYPE   SCT_CONCEPTID   SCT_DESCRIPTIONID       MAPSTATUS       EFFECTIVEdate   IS_ASSURED`
 type CtvMap struct {
 	readerHnd
 	Id            pg.UUID `csv:"id,MapId,MAPID" dbType:"uuid"`
-	EffectiveTime pg.Date `csv:"effectiveTime,effectiveDate,EffectiveDate,EFFECTIVEDATE" dbType:"DATE"`
-	Active        bool    `csv:"active,MapStatus,MAPSTATUS" dbType:"BOOLEAN"`
-	ConceptId     string  `csv:"conceptId,ConceptId,SCT_CONCEPTID" dbType:"VARCHAR" dbMod:"18" dbReference:"Concept>id"`
-	DescriptionId string  `csv:"descriptionId,DescriptionId,SCT_DESCRIPTIONID" dbType:"VARCHAR" dbMod:"18" dbReference:"Description>id"`
-	IsAssured     bool    `csv:"IS_ASSURED" dbType:"BOOLEAN"`
-	MapTarget     string  `csv:"readCode,ReadCode,CTV3_TERMID" dbType:"VARCHAR" dbMod:"7"`
-	MapOrigin     string  `csv:"mapOrigin,CTV3_TERMTYPE,omitempty" dbType:"VARCHAR" dbMod:"12"`
+	EffectiveTime pg.Date `csv:"effectiveTime,effectiveDate,EffectiveDate,EFFECTIVEdate" dbType:"date"`
+	Active        bool    `csv:"active,MapStatus,MAPSTATUS" dbType:"boolean"`
+	ConceptId     string  `csv:"conceptId,ConceptId,SCT_CONCEPTID" dbType:"varchar" dbMod:"18" dbReference:"Concept>id"`
+	DescriptionId string  `csv:"descriptionId,DescriptionId,SCT_DESCRIPTIONID" dbType:"varchar" dbMod:"18" dbReference:"Description>id"`
+	IsAssured     bool    `csv:"IS_ASSURED" dbType:"boolean"`
+	MapTarget     string  `csv:"readCode,ReadCode,CTV3_TERMID" dbType:"varchar" dbMod:"7"`
+	MapOrigin     string  `csv:"mapOrigin,CTV3_TERMTYPE,omitempty" dbType:"varchar" dbMod:"12"`
 }
 
 func (ref CtvMap) Process(row any) (process bool, flat []any, err error) {

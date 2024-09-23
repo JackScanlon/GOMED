@@ -8,7 +8,7 @@ type SnomedCodes struct {
 	Id            int      `dbType:"integer" dbIsPrimary:"true"`
 	Code          string   `dbType:"varchar" dbMod:"18"`
 	Description   string   `dbType:"varchar" dbMod:"256"`
-	CaseSig       SctCase  `dbType:"sctcase"`
+	CaseSig       SctCase  `dbType:"integer"`
 	Active        bool     `dbType:"boolean"`
 	EffectiveTime pg.Date  `dbType:"date"`
 	Opcs4Codes    []string `dbType:"text[]"`

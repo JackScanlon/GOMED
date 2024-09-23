@@ -26,6 +26,7 @@ type BuildCommand struct {
 	fs *flag.FlagSet
 
 	binPath  string
+	managed  bool
 	category trud.Category
 	driver   *pg.Driver
 	releases []*trud.Release
@@ -47,6 +48,7 @@ func NewBuildCommand() *BuildCommand {
 		&cc.binPath, "bin", defaultBinDirectory,
 		"The temporary output directory for downloaded content",
 	)
+	fs.BoolVar(&cc.managed, "managed", false, "Specifies whether this application is managing the SNOMED tables")
 	fs.StringVar(&config.NhsTrudKey, "key", config.NhsTrudKey, "NHS Trud API key")
 	fs.StringVar(&config.PostgresHost, "host", config.PostgresHost, "Postgres host")
 	fs.UintVar(&config.PostgresPort, "port", config.PostgresPort, "Postgres port")
@@ -104,6 +106,7 @@ func (c *BuildCommand) Run(ctx context.Context) (err error) {
 			- [x] create top-level code map
 			- [x] build simplified code map
 			- [x] build simplified ontology
+			- [ ] intermediate table cleanup
 			- [ ] add logger
 	*/
 
@@ -116,10 +119,15 @@ func (c *BuildCommand) Run(ctx context.Context) (err error) {
 	}
 
 	if rebuilt {
+		data := map[string]any{
+			"managed": c.managed,
+		}
+
 		err = templates.
 			GetContainer().
 			Source(
 				"concept:descriptionIdentifier",
+				templates.WithData(data),
 				templates.WithEcho(),
 			).
 			Exec()
@@ -132,6 +140,7 @@ func (c *BuildCommand) Run(ctx context.Context) (err error) {
 			GetContainer().
 			Source(
 				"concept:simplifyCodelist",
+				templates.WithData(data),
 				templates.WithEcho(),
 			).
 			Exec()
@@ -144,6 +153,7 @@ func (c *BuildCommand) Run(ctx context.Context) (err error) {
 			GetContainer().
 			Source(
 				"ontology:network",
+				templates.WithData(data),
 				templates.WithEcho(),
 			).
 			Exec()

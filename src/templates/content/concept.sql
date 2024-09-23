@@ -37,14 +37,14 @@
 
 do $tx$
 declare
-  FSN        constant varchar := '900000000000003001';
-  SYN        constant varchar := '900000000000013009';
-  DEF        constant varchar := '900000000000550004';
+  FSN        constant varchar   := '900000000000003001';
+  SYN        constant varchar   := '900000000000013009';
+  DEF        constant varchar   := '900000000000550004';
 
   RLRS       constant varchar[] := '{"999001261000000100", "999000691000001104"}'::varchar[];
 
-  PREFERRED  constant varchar := '900000000000548007';
-  ACCEPTABLE constant varchar := '900000000000549004';
+  PREFERRED  constant varchar   := '900000000000548007';
+  ACCEPTABLE constant varchar   := '900000000000549004';
 begin
   -- create description identifier
   if not exists(select 1 from pg_catalog.pg_type where typname = 'sctident') then
@@ -108,25 +108,17 @@ $tx$ language plpgsql;
 
 do $tx$
 declare
-  SIG_CL constant varchar := '900000000000020002';
-  SIG_CS constant varchar := '900000000000017005';
-  SIG_CI constant varchar := '900000000000448009';
+  SIG_CL  constant varchar := '900000000000020002';
+  SIG_CS  constant varchar := '900000000000017005';
+  SIG_CI  constant varchar := '900000000000448009';
+
+  ENUM_CL constant integer := 0;
+  ENUM_CI constant integer := 1;
+  ENUM_CS constant integer := 2;
 begin
   -- install ext(s) if not available
   create extension if not exists pg_trgm schema public;
   create extension if not exists btree_gin schema public;
-
-  -- create case significance identifier
-  if not exists(select 1 from pg_catalog.pg_type where typname = 'sctcase') then
-    create type sctcase as enum (
-      -- First character is case insensitive; rest is sensitive
-      'CL',
-      -- Entire term case sensitive
-      'CS',
-      -- Entire term case insensitive
-      'CI'
-    );
-  end if;
 
   -- create ts agg if not available
   if not exists(select 1 from pg_catalog.pg_proc where proname = 'tsvector_agg' and prokind = 'a') then
@@ -137,29 +129,35 @@ begin
     );
   end if;
 
-  -- drop table if exists
-  if exists(
-    select 1 from information_schema.tables where table_schema='public' and table_name='clinicalcode_snomed_codes'
-  ) then
-    drop table public.clinicalcode_snomed_codes;
-  end if;
+  --[?] Handle table migration if managed service
+  {{if .Data.managed}}
+    -- drop table if exists
+    if exists(
+      select 1 from information_schema.tables where table_schema='public' and table_name='clinicalcode_snomed_codes'
+    ) then
+      drop table public.clinicalcode_snomed_codes;
+    end if;
 
-  -- create snomed table
-  create table public.clinicalcode_snomed_codes (
-    id             serial        primary key,
-    code           varchar(18)   not null,
-    description    varchar(256)  not null,
-    case_sig       sctcase       default null,
-    active         boolean       default true,
-    effective_time date          not null default now()::date,
-    opcs4_codes    text[]        default '{}',
-    icd10_codes    text[]        default '{}',
-    readcv2_codes  text[]        default '{}',
-    readcv3_codes  text[]        default '{}',
-    search_vector  tsvector      default '',
-    synonyms       tsvector      default '',
-    unique (code)
-  );
+    -- create snomed table
+    create table public.clinicalcode_snomed_codes (
+      id             serial        primary key,
+      code           varchar(18)   not null default '',
+      description    varchar(256)  not null default '',
+      case_sig       integer       default ENUM_CI,
+      active         boolean       default true,
+      effective_time date          not null default now()::date,
+      opcs4_codes    text[]        default '{}'::text[],
+      icd10_codes    text[]        default '{}'::text[],
+      readcv2_codes  text[]        default '{}'::text[],
+      readcv3_codes  text[]        default '{}'::text[],
+      search_vector  tsvector      default '',
+      synonyms       tsvector      default '',
+      unique (code)
+    );
+  {{else}}
+    -- truncate (cascade not enforced to ensure an error is thrown)
+    truncate table public.clinicalcode_snomed_codes;
+  {{end}}
 
   -- insert `clinicalcode_snomed_codes` rows
   with
@@ -171,10 +169,10 @@ begin
             d.term as description,
             (
               case
-                when d.case_significance_id = SIG_CL then 'CL'::sctcase
-                when d.case_significance_id = SIG_CS then 'CS'::sctcase
-                when d.case_significance_id = SIG_CI then 'CI'::sctcase
-                else 'CI'::sctcase
+                when d.case_significance_id = SIG_CL then ENUM_CL
+                when d.case_significance_id = SIG_CS then ENUM_CS
+                when d.case_significance_id = SIG_CI then ENUM_CI
+                else ENUM_CI
               end
             ) as case_sig,
             c.active,
@@ -287,20 +285,24 @@ begin
         readcv3_codes = excluded.opcs4_codes,
         search_vector = excluded.search_vector,
         synonyms      = excluded.synonyms
-     where excluded.effective_time > clinicalcode_snomed_codes.effective_time;
+     where excluded.active
+       and excluded.effective_time > clinicalcode_snomed_codes.effective_time;
 
-  -- create index
-  create index sct_cd_trgm_idx   on public.clinicalcode_snomed_codes using gin (code          gin_trgm_ops);
-  create index sct_desc_trgm_idx on public.clinicalcode_snomed_codes using gin (description   gin_trgm_ops);
+  --[?] Handle index creation if managed
+  {{if .Data.managed}}
+    -- create index
+    create index sct_cd_trgm_idx   on public.clinicalcode_snomed_codes using gin (code          gin_trgm_ops);
+    create index sct_desc_trgm_idx on public.clinicalcode_snomed_codes using gin (description   gin_trgm_ops);
 
-  create index sct_icd_txt_idx   on public.clinicalcode_snomed_codes using gin (icd10_codes   array_ops);
-  create index sct_opcs_txt_idx  on public.clinicalcode_snomed_codes using gin (opcs4_codes   array_ops);
-  create index sct_cv2_txt_idx   on public.clinicalcode_snomed_codes using gin (readcv2_codes array_ops);
-  create index sct_cv3_txt_idx   on public.clinicalcode_snomed_codes using gin (readcv3_codes array_ops);
+    create index sct_icd_txt_idx   on public.clinicalcode_snomed_codes using gin (icd10_codes   array_ops);
+    create index sct_opcs_txt_idx  on public.clinicalcode_snomed_codes using gin (opcs4_codes   array_ops);
+    create index sct_cv2_txt_idx   on public.clinicalcode_snomed_codes using gin (readcv2_codes array_ops);
+    create index sct_cv3_txt_idx   on public.clinicalcode_snomed_codes using gin (readcv3_codes array_ops);
 
-  -- create sv index
-  create index sct_sv_gin_idx  on public.clinicalcode_snomed_codes using gin (search_vector);
-  create index sct_syn_gin_idx on public.clinicalcode_snomed_codes using gin (synonyms     );
+    -- create sv index
+    create index sct_sv_gin_idx    on public.clinicalcode_snomed_codes using gin (search_vector);
+    create index sct_syn_gin_idx   on public.clinicalcode_snomed_codes using gin (synonyms     );
+  {{end}}
 
 end;
 $tx$ language plpgsql;

@@ -9,18 +9,18 @@ const (
 	SctTextual        SctIdentifier = "D"
 )
 
-type SctCase string
+type SctCase int
 
 const (
-	SctCL SctIdentifier = "CL"
-	SctCS SctIdentifier = "CS"
-	SctCI SctIdentifier = "CI"
+	SctCL SctCase = 0
+	SctCS SctCase = 1
+	SctCI SctCase = 2
 )
 
 type OntologyType int
 
 const (
-	CLINICAL_DISEASE            = 0
-	CLINICAL_DOMAIN             = 1
-	CLINICAL_FUNCTIONAL_ANATOMY = 2
+	CLINICAL_DISEASE            OntologyType = 0
+	CLINICAL_DOMAIN             OntologyType = 1
+	CLINICAL_FUNCTIONAL_ANATOMY OntologyType = 2
 )

@@ -10,6 +10,10 @@ import (
 
 var cmds []Command
 
+const (
+	usageFmt string = "%s %s arguments:\n"
+)
+
 type Command interface {
 	Init(context.Context, []string) error
 	Run(context.Context) error
@@ -21,6 +25,7 @@ type Command interface {
 func GenerateCommands() {
 	cmds = []Command{
 		NewBuildCommand(),
+		NewCleanCommand(),
 	}
 }
 

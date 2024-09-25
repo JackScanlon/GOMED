@@ -280,9 +280,9 @@ begin
         case_sig      = excluded.case_sig,
         active        = excluded.active,
         opcs4_codes   = excluded.opcs4_codes,
-        icd10_codes   = excluded.opcs4_codes,
-        readcv2_codes = excluded.opcs4_codes,
-        readcv3_codes = excluded.opcs4_codes,
+        icd10_codes   = excluded.icd10_codes,
+        readcv2_codes = excluded.readcv2_codes,
+        readcv3_codes = excluded.readcv3_codes,
         search_vector = excluded.search_vector,
         synonyms      = excluded.synonyms
      where excluded.active

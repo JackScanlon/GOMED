@@ -1,7 +1,8 @@
-version: '3.8'
+name: snomed_devcontainer
 
 services:
   dev:
+    platform: linux/amd64
     build:
       context: ..
       dockerfile: ./.devcontainer/Dockerfile
@@ -9,31 +10,92 @@ services:
         GO_VERSION: 1.22.1
     tty: true
     command: sleep infinity
-    network_mode: service:db
+    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     env_file:
       - .env
     volumes:
-      - ..:/workspace:cached
+      # VSCode workspace cache
+      - dev-data:/workspace:cached
+      # VSCode extension cache
+      - .vscode-server/extensions/:/root/.vscode-server/extensions/
+      - .vscode-server/extensionsCache/:/root/.vscode-server/extensionsCache/
+    networks:
+      - backend
+      - dev-cllnet
+    extra_hosts:
+      - host.docker.internal:host-gateway
 
-  db:
-    image: postgres:latest
-    restart: on-failure
+  terms-db:
+    image: mysql:5.7
     tty: true
-    ports:
-      - 5432:5432
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
+    restart: on-failure
+    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     env_file:
       - .env
+    ports:
+      - 3306:3306
+    volumes:
+      - type: volume
+        source: terms-data
+        target: /var/lib/mysql
+    networks:
+      - backend
     healthcheck:
-      test: [
-        "CMD-SHELL",
-        "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
-        "&& /usr/bin/psql -d $$POSTGRES_DB -U $$POSTGRES_USER -t -c \"select count(datid) from pg_stat_activity where state is not null and wait_event = 'WalWriterMain';\" | egrep .",
-      ]
+      test: >
+        sh - c "mysql $$MYSQL_DATABASE --user=$$MYSQL_USER --password='$$MYSQL_PASSWORD' --silent --execute='SELECT 1;'"
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # NOTE: Only required if codelist-db is being used for local development
+  # codelist-db:
+  #   image: postgres:latest
+  #   tty: true
+  #   restart: on-failure
+  #   stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - type: volume
+  #       source: codelist-data
+  #       target: /var/lib/postgresql/data
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - backend
+  #   healthcheck:
+  #     test: >
+  #       sh -c "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+  #         && /usr/bin/psql -d $$POSTGRES_DB -U $$POSTGRES_USER -t -c \"select count(datid) from pg_stat_activity where state is not null and wait_event = 'WalWriterMain';\" | egrep ."
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+networks:
+  backend:
+    name: dev-gomednet
+    driver: bridge
+    attachable: true
+    labels:
+      com.gomed.description: "GOMED: Internal network"
+
+  dev-cllnet:
+    external: true
+
 volumes:
-  postgres-data:
+  dev-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ..
+      o: bind
+    labels:
+      com.gomed.description: "GOMED: Development workspace data"
+
+  terms-data:
+    labels:
+      com.gomed.description: "GOMED: Terminology data"
+
+  codelist-data:
+    labels:
+      com.gomed.description: "GOMED: Local Codelist data"

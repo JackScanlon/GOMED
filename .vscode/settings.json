@@ -2,6 +2,11 @@
   // Git behaviour
   "git.autofetch": true,
 
+  // Base formatting
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+
   // Languages
   "[jsonc]": {
     "editor.tabSize": 2,
@@ -10,6 +15,7 @@
     "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[go]": {
+    "editor.defaultFormatter": "golang.go",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.organizeImports": "always",
@@ -27,8 +33,10 @@
     "editor.detectIndentation": false,
   },
 
-  // Base formatting
-  "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true,
-  "files.trimFinalNewlines": true
+  // Extension settings
+  "go.inlayHints.parameterNames": true,
+  "go.inlayHints.compositeLiteralFields": true,
+  "gopls": {
+    "ui.semanticTokens": true
+  }
 }

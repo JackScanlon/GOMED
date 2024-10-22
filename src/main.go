@@ -9,13 +9,12 @@ import (
 	"path/filepath"
 
 	"snomed/src/cmd"
-	"snomed/src/pg"
 	"snomed/src/shared"
 )
 
 func init() {
-	if _, err := pg.RegisterEnvironment(); err != nil {
-		fmt.Fprintln(flag.CommandLine.Output(), errors.New(pg.EnvironmentUsage()))
+	if _, err := shared.RegisterEnvironment(); err != nil {
+		fmt.Fprintln(flag.CommandLine.Output(), errors.New(shared.EnvironmentUsage()))
 		os.Exit(1)
 	}
 

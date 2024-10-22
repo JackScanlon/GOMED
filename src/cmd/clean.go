@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"snomed/src/pg"
+	"snomed/src/shared"
 	"snomed/src/templates"
 )
 
@@ -48,7 +49,7 @@ func NewCleanCommand() *CleanCommand {
 		"Specify items to cleanup, either 'all' or from: releases, codelist, ontology (delimited by comma)",
 	)
 
-	config := pg.Config
+	config := shared.Config
 	fs.StringVar(&config.PostgresHost, "host", config.PostgresHost, "Postgres host")
 	fs.UintVar(&config.PostgresPort, "port", config.PostgresPort, "Postgres port")
 	fs.StringVar(&config.PostgresUsername, "uid", config.PostgresUsername, "Postgres username")

@@ -1,4 +1,6 @@
-.tmp/
 bin/
 out/
+.tmp/
+.data/
 .devcontainer/.env
+.devcontainer/.vscode-server

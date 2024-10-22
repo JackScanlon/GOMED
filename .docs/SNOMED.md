@@ -1,6 +1,6 @@
 # SNOMED
 
-## Overview
+## 1. Overview
 
 ```text
 
@@ -29,7 +29,7 @@
 
 ```
 
-## Reference
+## 2. Reference
 | Table          | Column                 | Value                | Summary                                                           |
 |----------------|------------------------|----------------------|-------------------------------------------------------------------|
 | `relationship` | `type_id`              | `116680003`          | Describes the parent-child (`IS_A`) relationship                  |
@@ -44,9 +44,9 @@
 | `refset`       | `acceptability_id`     | `900000000000548007` | Realm language reference set descriptor acceptability indicator   |
 | `refset`       | `acceptability_id`     | `900000000000549004` | Realm language reference set descriptor acceptability indicator   |
 
-## Processing
+## 3. Processing
 
-### 1. Collect SNOMED CT full release
+### 3.1. Collect SNOMED CT full release
 
 1. Download release from:
     - URL @ [SNOMED CT UK Clinical Edition, RF2](https://isd.digital.nhs.uk/trud/users/authenticated/group/0/pack/26/subpack/101/releases)
@@ -60,7 +60,7 @@
     - Filename: `der2_iisssciRefset_ExtendedMapUKCLFull_GB1000000_20240410.txt`
     - Filename: `der2_sRefset_SimpleMapMONOSnapshot_GB_20240828.txt`
 
-### 2. Collect ReadCode map(s)
+### 3.2. Collect ReadCode map(s)
 
 1. Download release from:
     - URL @ [NHS Data Migration](https://isd.digital.nhs.uk/trud/users/authenticated/filters/0/categories/9/items/9/releases)
@@ -72,28 +72,27 @@
 3. Upload the following ReadCV3 maps:
     - Assured: `Mapping Tables/Updated/Clinically Assured/ctv3rctmap_uk_20200401000002.txt`
 
-### 3. Generate simplified tables
+### 3.3. Generate simplified tables
 
-1. Create `public.clinicalcode_snomed_codes` table
-    - Shape:
-        | Column           | Type                      | Description                           |
-        |------------------|---------------------------|---------------------------------------|
-        | `id`             | `integer [seq, pk]`       | Internal id                           |
-        | `code`           | `varchar(18)`             | SNOMED Code (`SCTID`)                 |
-        | `description`    | `varchar(256)`            | Fully specified name                  |
-        | `case_sig`       | `sctsig [user-def, enum]` | Case significance of name             |
-        | `active`         | `boolean`                 | Status of the code                    |
-        | `effective_time` | `date`                    | When this code came into existence    |
-        | `opcs4_codes`    | `text[]`                  | OPCS4 mapping                         |
-        | `icd10_codes`    | `text[]`                  | ICD-10 mapping                        |
-        | `readcv2_codes`  | `text[]`                  | ReadCV2 mapping                       |
-        | `readcv3_codes`  | `text[]`                  | ReadCV3 mapping                       |
-        | `search_vector`  | `tsvector [weighted]`     | Weighted search vector incl. synonyms |
-        | `synonyms`       | `tsvector [bare, P&S]`    | One or more synonymous description(s) |
+- Create `public.clinicalcode_snomed_codes` table with shape:
 
-2. ...
+    | Column           | Type                      | Description                           |
+    |------------------|---------------------------|---------------------------------------|
+    | `id`             | `integer [seq, pk]`       | Internal id                           |
+    | `code`           | `varchar(18)`             | SNOMED Code (`SCTID`)                 |
+    | `description`    | `varchar(256)`            | Fully specified name                  |
+    | `case_sig`       | `sctsig [user-def, enum]` | Case significance of name             |
+    | `active`         | `boolean`                 | Status of the code                    |
+    | `effective_time` | `date`                    | When this code came into existence    |
+    | `opcs4_codes`    | `text[]`                  | OPCS4 mapping                         |
+    | `icd10_codes`    | `text[]`                  | ICD-10 mapping                        |
+    | `readcv2_codes`  | `text[]`                  | ReadCV2 mapping                       |
+    | `readcv3_codes`  | `text[]`                  | ReadCV3 mapping                       |
+    | `search_vector`  | `tsvector [weighted]`     | Weighted search vector incl. synonyms |
+    | `synonyms`       | `tsvector [bare, P&S]`    | One or more synonymous description(s) |
 
-### 4. Mapping coding systems to SNOMED CT
+
+### 3.4. Mapping coding systems to SNOMED CT
 
 1. Generate mapping table(s)
 

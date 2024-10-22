@@ -9,6 +9,7 @@ import (
 
 	"snomed/src/codes"
 	"snomed/src/pg"
+	"snomed/src/shared"
 	"snomed/src/templates"
 	"snomed/src/trud"
 )
@@ -49,7 +50,7 @@ func NewBuildCommand() *BuildCommand {
 	fs.StringVar(&desiredCategory, "cat", desiredCategory, "Desired SNOMED release categories")
 	fs.BoolVar(&cc.managed, "managed", false, "Specifies whether this application is managing the SNOMED tables")
 
-	config := pg.Config
+	config := shared.Config
 	fs.StringVar(&config.NhsTrudKey, "key", config.NhsTrudKey, "NHS Trud API key")
 	fs.StringVar(&config.PostgresHost, "host", config.PostgresHost, "Postgres host")
 	fs.UintVar(&config.PostgresPort, "port", config.PostgresPort, "Postgres port")
@@ -89,7 +90,7 @@ func (c *BuildCommand) Init(ctx context.Context, args []string) error {
 		return err
 	}
 
-	releases, err := trud.DownloadPackages(ctx, c.category, pg.Config.NhsTrudKey, c.binPath)
+	releases, err := trud.DownloadPackages(ctx, c.category, shared.Config.NhsTrudKey, c.binPath)
 	if err != nil {
 		return err
 	}

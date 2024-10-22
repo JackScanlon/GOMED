@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"snomed/src/shared"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -177,10 +179,10 @@ func (d *Driver) GetOptions(options ...PgOption) PgOptions {
 func buildConnectionString() string {
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s",
-		Config.PostgresUsername,
-		Config.PostgresPassword,
-		Config.PostgresHost,
-		Config.PostgresPort,
-		Config.PostgresDatabase,
+		shared.Config.PostgresUsername,
+		shared.Config.PostgresPassword,
+		shared.Config.PostgresHost,
+		shared.Config.PostgresPort,
+		shared.Config.PostgresDatabase,
 	)
 }

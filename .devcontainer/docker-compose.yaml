@@ -7,10 +7,10 @@ services:
       context: ..
       dockerfile: ./.devcontainer/Dockerfile
       args:
-        GO_VERSION: 1.22.1
+        GO_VERSION: ${GOMED_GO_VERSION:-1.22.1}
     tty: true
     command: sleep infinity
-    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    stop_grace_period: ${GOMED_GRACE_PERIOD:-3s}
     env_file:
       - .env
     volumes:
@@ -29,7 +29,7 @@ services:
     image: mysql:5.7
     tty: true
     restart: on-failure
-    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    stop_grace_period: ${GOMED_GRACE_PERIOD:-3s}
     env_file:
       - .env
     ports:
@@ -52,7 +52,7 @@ services:
   #   image: postgres:latest
   #   tty: true
   #   restart: on-failure
-  #   stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+  #   stop_grace_period: ${GOMED_GRACE_PERIOD:-3s}
   #   ports:
   #     - 5432:5432
   #   volumes:

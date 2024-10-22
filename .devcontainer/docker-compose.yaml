@@ -79,6 +79,7 @@ networks:
     labels:
       com.gomed.description: "GOMED: Internal network"
 
+  # Describes the external cll db network
   dev-cllnet:
     external: true
 

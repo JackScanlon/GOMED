@@ -6,11 +6,18 @@
 
 declare -a delims=("\t" "," "|" "[[:space:]]")
 
-while getopts d:f: flag
+usage() {
+  printf "Usage: $0\nOpts:\n\t[-d <string> test all files in a directory]\n\t[-f <string> test specific file]\n" 1>&2;
+  exit 0;
+}
+
+while getopts ":d:f:" flag
 do
   case "${flag}" in
     d) dir=${OPTARG};;
     f) file=${OPTARG};;
+    *)
+      usage;;
   esac
 done
 
@@ -33,7 +40,6 @@ space_or_tabs()
 
 if [ -z "$dir" ] && [ -z "$file" ]; then
   usage
-  exit 0
 elif [ ! -z "$dir" ]; then
   if [ $(find "$dir" -type f | wc -l) -eq 0 ] ; then
     echo "No files to test in Dir<${dir}>"

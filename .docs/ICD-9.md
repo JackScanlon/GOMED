@@ -66,6 +66,9 @@ See:
 - Source: https://www.cms.gov/medicare/coding-billing/icd-10-codes/icd-9-cm-diagnosis-procedure-codes-abbreviated-and-full-code-titles
 - Download: https://www.cms.gov/medicare/coding/icd9providerdiagnosticcodes/downloads/icd-9-cm-v32-master-descriptions.zip
 
+Mapping:
+- See: https://www.nlm.nih.gov/research/umls/mapping_projects/icd9cm_to_snomedct.html
+
 ## 3. Processing
 
 ### 3.1. Generate ICD-9-CM codelist

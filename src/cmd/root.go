@@ -24,6 +24,7 @@ type Command interface {
 
 func GenerateCommands() {
 	cmds = []Command{
+		NewCopyCommand(),
 		NewBuildCommand(),
 		NewCleanCommand(),
 	}

@@ -62,7 +62,7 @@ func (t *Template) Exec(args ...interface{}) error {
 	}
 
 	if t.Echo {
-		fmt.Printf("executing template<Exec>: '%s'\n", t.Name)
+		fmt.Printf("executing template<Exec>: '%s'\n\n%s", t.Name, buf.String())
 	}
 
 	stmt := db.StmtWithOpts(t.PgOpts)

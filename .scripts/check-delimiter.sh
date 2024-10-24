@@ -1,14 +1,20 @@
-#/bin/bash/
+#!/bin/bash
 
 : '
   Basic utility to test tab/space delimination of an input file
+
+    e.g.
+
+      bash ./.scripts/check-delimiter.sh -f .data/some_file.txt
+
 '
 
 declare -a delims=("\t" "," "|" "[[:space:]]")
 
-usage() {
+usage()
+{
   printf "Usage: $0\nOpts:\n\t[-d <string> test all files in a directory]\n\t[-f <string> test specific file]\n" 1>&2;
-  exit 0;
+  exit 1;
 }
 
 while getopts ":d:f:" flag

@@ -142,18 +142,21 @@ begin
 
     -- create snomed table
     create table public.clinicalcode_snomed_codes (
-      id             serial        primary key,
-      code           varchar(18)   not null default '',
-      description    varchar(256)  not null default '',
-      case_sig       integer       default ENUM_CI,
-      active         boolean       default true,
-      effective_time date          not null default now()::date,
-      opcs4_codes    text[]        default '{}'::text[],
-      icd10_codes    text[]        default '{}'::text[],
-      readcv2_codes  text[]        default '{}'::text[],
-      readcv3_codes  text[]        default '{}'::text[],
-      search_vector  tsvector      default '',
-      synonyms       tsvector      default '',
+      id              serial        primary key,
+      code            varchar(18)   not null default '',
+      description     varchar(256)  not null default '',
+      case_sig        integer       default ENUM_CI,
+      active          boolean       default true,
+      effective_time  date          not null default now()::date,
+      mesh_codes      text[]        default '{}'::text[],
+      opcs4_codes     text[]        default '{}'::text[],
+      icd9_codes      text[]        default '{}'::text[],
+      icd10_codes     text[]        default '{}'::text[],
+      readcv2_codes   text[]        default '{}'::text[],
+      readcv3_codes   text[]        default '{}'::text[],
+      search_vector   tsvector      default '',
+      synonyms_vector tsvector      default '',
+      relation_vector tsvector      default '',
       unique (code)
     );
   {{else}}
@@ -243,8 +246,11 @@ begin
        group by snomed_code, source
     )
   insert into public.clinicalcode_snomed_codes (
-             id,        code,   description,      case_sig,        active, effective_time,
-    opcs4_codes, icd10_codes, readcv2_codes, readcv3_codes, search_vector,       synonyms
+              id,             code,      description,
+        case_sig,           active,   effective_time,
+      mesh_codes,      opcs4_codes,       icd9_codes,
+     icd10_codes,    readcv2_codes,    readcv3_codes,
+    search_vector,  synonyms_vector, relation_vector
   )
     select
           c.id,
@@ -253,23 +259,44 @@ begin
           c.case_sig,
           c.active,
           c.effective_time,
+          mesh.codes as mesh_codes,
           opcs.codes as opcs4_codes,
-          icd.codes as icd10_codes,
+          icd9.codes as icd9_codes,
+          icd10.codes as icd10_codes,
           cv2.codes as readcv2_codes,
           cv3.codes as readcv3_codes,
           (
             setweight(to_tsvector('pg_catalog.english', coalesce(c.code, '')), 'A') ||
             setweight(to_tsvector('pg_catalog.english', coalesce(c.description, '')), 'A') ||
-            setweight(s.vec, 'B')
+            setweight(s.vec, 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(mesh.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(opcs.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(icd9.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(icd10.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(cv2.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(cv3.codes, '{}'::text[]), ' ')), 'B')
           ) as search_vector,
-          s.vec as synonyms
+          s.vec as synonyms_vector,
+          (
+            setweight(to_tsvector('pg_catalog.english', coalesce(c.code, '')), 'A') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(mesh.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(opcs.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(icd9.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(icd10.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(cv2.codes, '{}'::text[]), ' ')), 'B') ||
+            setweight(to_tsvector('pg_catalog.english', array_to_string(coalesce(cv3.codes, '{}'::text[]), ' ')), 'B')
+          ) as relation_vector
       from concepts as c
       left join synonyms as s
         using (code)
-      left join codemap as icd
-        on c.code = icd.snomed_code and icd.source = 'ICD-10'
+      left join public.temp_meshmap as mesh
+        on c.code = mesh.snomed_code
       left join codemap as opcs
         on c.code = opcs.snomed_code and opcs.source = 'OPCS4'
+      left join public.temp_icd9map as icd9
+        on c.code = icd9.snomed_code
+      left join codemap as icd10
+        on c.code = icd10.snomed_code and icd10.source = 'ICD-10'
       left join codemap as cv2
         on c.code = cv2.snomed_code and cv2.source = 'ReadCodeV2'
       left join codemap as cv3
@@ -277,16 +304,19 @@ begin
     on conflict (code)
     do update
       set
-        code          = excluded.code,
-        description   = excluded.description,
-        case_sig      = excluded.case_sig,
-        active        = excluded.active,
-        opcs4_codes   = excluded.opcs4_codes,
-        icd10_codes   = excluded.icd10_codes,
-        readcv2_codes = excluded.readcv2_codes,
-        readcv3_codes = excluded.readcv3_codes,
-        search_vector = excluded.search_vector,
-        synonyms      = excluded.synonyms
+        code            = excluded.code,
+        description     = excluded.description,
+        case_sig        = excluded.case_sig,
+        active          = excluded.active,
+        mesh_codes      = excluded.mesh_codes,
+        opcs4_codes     = excluded.opcs4_codes,
+        icd9_codes      = excluded.icd9_codes,
+        icd10_codes     = excluded.icd10_codes,
+        readcv2_codes   = excluded.readcv2_codes,
+        readcv3_codes   = excluded.readcv3_codes,
+        search_vector   = excluded.search_vector,
+        synonyms_vector = excluded.synonyms_vector
+        relation_vector = excluded.relation_vector
      where excluded.active
        and excluded.effective_time > clinicalcode_snomed_codes.effective_time;
 
@@ -296,14 +326,17 @@ begin
     create index sct_cd_trgm_idx   on public.clinicalcode_snomed_codes using gin (code          gin_trgm_ops);
     create index sct_desc_trgm_idx on public.clinicalcode_snomed_codes using gin (description   gin_trgm_ops);
 
-    create index sct_icd_txt_idx   on public.clinicalcode_snomed_codes using gin (icd10_codes   array_ops);
+    create index sct_mesh_txt_idx  on public.clinicalcode_snomed_codes using gin (mesh_codes    array_ops);
     create index sct_opcs_txt_idx  on public.clinicalcode_snomed_codes using gin (opcs4_codes   array_ops);
+    create index sct_icd9_txt_idx  on public.clinicalcode_snomed_codes using gin (icd9_codes    array_ops);
+    create index sct_icd10_txt_idx on public.clinicalcode_snomed_codes using gin (icd10_codes   array_ops);
     create index sct_cv2_txt_idx   on public.clinicalcode_snomed_codes using gin (readcv2_codes array_ops);
     create index sct_cv3_txt_idx   on public.clinicalcode_snomed_codes using gin (readcv3_codes array_ops);
 
     -- create sv index
-    create index sct_sv_gin_idx    on public.clinicalcode_snomed_codes using gin (search_vector);
-    create index sct_syn_gin_idx   on public.clinicalcode_snomed_codes using gin (synonyms     );
+    create index sct_sv_gin_idx    on public.clinicalcode_snomed_codes using gin (search_vector  );
+    create index sct_syn_gin_idx   on public.clinicalcode_snomed_codes using gin (synonyms_vector);
+    create index sct_rel_gin_idx   on public.clinicalcode_snomed_codes using gin (relation_vector);
   {{end}}
 
 end;

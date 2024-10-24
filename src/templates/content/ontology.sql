@@ -33,12 +33,14 @@ begin
 
     -- create ontologytag table
     create table public.clinicalcode_ontologytag (
-      id             bigserial     primary key,
-      name           varchar(256)  not null default '',
-      type_id        integer       not null,
-      reference_id   bigint        default null,
-      properties     jsonb         default '{}'::jsonb,
-      search_vector  tsvector      default ''
+      id              bigserial     primary key,
+      name            varchar(256)  not null default '',
+      type_id         integer       not null,
+      reference_id    bigint        default null,
+      properties      jsonb         default '{}'::jsonb,
+      search_vector   tsvector      default '',
+      synonyms_vector tsvector      default '',
+      relation_vector tsvector      default ''
     );
 
     -- create ontologytagedge table
@@ -54,7 +56,7 @@ begin
   {{end}}
 
   -- generate snomed ontology
-  insert into public.clinicalcode_ontologytag (name, type_id, reference_id, properties, search_vector)
+  insert into public.clinicalcode_ontologytag (name, type_id, reference_id, properties, search_vector, synonyms_vector, relation_vector)
     select
           description,
           TYPE_DISEASE as type_id,
@@ -64,13 +66,16 @@ begin
                      'code_id', id,
             'coding_system_id', SNOMED_CODING_ID
           ) as properties,
-          setweight(
-            (
-              to_tsvector('pg_catalog.english', coalesce(description, '')) ||
-              to_tsvector('pg_catalog.english', coalesce(code, ''))
-            ),
-            'A'
-          ) as search_vector
+          (
+            setweight(
+              (to_tsvector('pg_catalog.english', coalesce(description, '')) || to_tsvector('pg_catalog.english', coalesce(code, ''))),
+              'A'
+            ) ||
+            setweight(coalesce(relation_vector, to_tsvector('')), 'B') ||
+            setweight(coalesce(synonyms_vector, to_tsvector('')), 'B')
+          ) as search_vector,
+          synonyms_vector,
+          relation_vector,
       from public.clinicalcode_snomed_codes
      where code != ROOT_CONCEPT_ID;
 

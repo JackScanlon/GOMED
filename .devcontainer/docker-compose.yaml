@@ -25,27 +25,28 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
 
-  terms-db:
-    image: mysql:5.7
-    tty: true
-    restart: on-failure
-    stop_grace_period: ${GOMED_GRACE_PERIOD:-3s}
-    env_file:
-      - .env
-    ports:
-      - 3306:3306
-    volumes:
-      - type: volume
-        source: terms-data
-        target: /var/lib/mysql
-    networks:
-      - backend
-    healthcheck:
-      test: >
-        sh - c "mysql $$MYSQL_DATABASE --user=$$MYSQL_USER --password='$$MYSQL_PASSWORD' --silent --execute='SELECT 1;'"
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # NOTE: Only required if terms-db is being used for local development
+  # terms-db:
+  #   image: mysql:5.7
+  #   tty: true
+  #   restart: on-failure
+  #   stop_grace_period: ${GOMED_GRACE_PERIOD:-3s}
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - 3306:3306
+  #   volumes:
+  #     - type: volume
+  #       source: terms-data
+  #       target: /var/lib/mysql
+  #   networks:
+  #     - backend
+  #   healthcheck:
+  #     test: >
+  #       sh - c "mysql $$MYSQL_DATABASE --user=$$MYSQL_USER --password='$$MYSQL_PASSWORD' --silent --execute='SELECT 1;'"
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   # NOTE: Only required if codelist-db is being used for local development
   # codelist-db:

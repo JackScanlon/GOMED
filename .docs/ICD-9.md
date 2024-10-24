@@ -2,6 +2,8 @@
 
 ## 1. Overview
 
+### 1.1. Hierarchy
+
 ```text
   ┌──────────────────────┐
   │                      │
@@ -43,6 +45,21 @@
                                  └───────────────────────────────────────┘
 ```
 
+### 1.2. Codelist dataset
+
+| Column | Summary          |
+|--------|------------------|
+| `$1`   | ICD-9 code       |
+| `$2`   | Code description |
+
+### 1.3. Mapping dataset
+
+| Column       | Type           | Summary            |
+|--------------|----------------|--------------------|
+| `ICD_CODE`   | `varchar(7)`   | ICD-9 code         |
+| `ICD_NAME`   | `varchar(255)` | Code description   |
+| `SNOMED_CID` | `varchar(18)`  | Snomed mapped code |
+
 ## 2. Availability
 
 See:
@@ -59,3 +76,14 @@ See:
 2. Upload all `[Diagnosis Code, Product Code]` from...
     - Diagnosis codes: `CMS32_DESC_LONG_DX.txt`
     - Product codes: `CMS32_DESC_LONG_SG.txt`
+
+### 3.2. Object Ref
+
+Internal codelist object reference:
+
+| Column         | Type          |
+|----------------|---------------|
+| `code`         | `varchar(50)` |
+| `description`  | `varchar(255)`|
+| `import_date`  | `timestamp`   |
+| `created_date` | `timestamp`   |

@@ -1,6 +1,13 @@
+# Data release downloads
 bin/
-out/
-.tmp/
+
+# Prepped data files
 .data/
+
+# App binary
+out/
+
+# Dev files
+.tmp/
 .devcontainer/.env
 .devcontainer/.vscode-server

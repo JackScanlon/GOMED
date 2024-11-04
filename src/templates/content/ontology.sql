@@ -75,7 +75,7 @@ begin
             setweight(coalesce(synonyms_vector, to_tsvector('')), 'B')
           ) as search_vector,
           synonyms_vector,
-          relation_vector,
+          relation_vector
       from public.clinicalcode_snomed_codes
      where code != ROOT_CONCEPT_ID;
 

@@ -315,7 +315,7 @@ begin
         readcv2_codes   = excluded.readcv2_codes,
         readcv3_codes   = excluded.readcv3_codes,
         search_vector   = excluded.search_vector,
-        synonyms_vector = excluded.synonyms_vector
+        synonyms_vector = excluded.synonyms_vector,
         relation_vector = excluded.relation_vector
      where excluded.active
        and excluded.effective_time > clinicalcode_snomed_codes.effective_time;
